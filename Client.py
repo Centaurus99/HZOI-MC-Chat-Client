@@ -6,7 +6,12 @@ import threading
 
 url = ''
 headers = {}
-
+try:
+    with open('url.dat', 'r') as fin:
+        url = fin.read()
+    print(url)
+except:
+    pass
 
 root = tk.Tk(className = ' HZOI MC Chat Client')
 root.geometry("300x250")
@@ -17,6 +22,7 @@ frm3 = tk.Frame(root)
 frm4 = tk.Frame(root)
 label = tk.Label(frm1, text = 'URL:')
 PreIn = tk.Entry(frm1, width = 30)
+PreIn.insert('insert', url)
 Prebutton = tk.Button(frm1, text="Start", width = 5, height = 1)
 Out = tk.Text(frm2, width = 40, height = 12, state = 'disabled')
 Meg1 = tk.Message(frm3, width = 150)
@@ -35,12 +41,14 @@ def Get():
     while(1):
         print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp / 1000)))
         get_res = requests.get(url + '/up/world/world/' + str(timestamp) , headers = headers)
-        SetMessage(Meg1, 'Get code:' + str(get_res.status_code))
+        #SetMessage(Meg1, 'Get code:' + str(get_res.status_code))
         if (get_res.status_code != 200):
-            Meg1.config(fg = 'red')
+            SetMessage(Meg1, 'Unconnected', 'red')
+            #Meg1.config(fg = 'red')
             continue
         else:
-            Meg1.config(fg = 'green')
+            SetMessage(Meg1, 'Connected', 'green')
+            #Meg1.config(fg = 'green')
         data = json.loads(get_res.content)
         for num in data['updates']:
             if (num['timestamp'] <= timestamp):
@@ -84,7 +92,7 @@ def Send(event):
 def GetStart():
     err = 0
     try:
-        get_res = requests.get(url + '/up/world/world/1')
+        get_res = requests.get(url + '/up/world/world/1', timeout = 5)
     except:
         err = 1
     if (err or get_res.status_code != 200):
