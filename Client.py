@@ -5,6 +5,7 @@ import time
 import threading
 import ctypes
 
+
 #隐藏窗口
 whnd = ctypes.windll.kernel32.GetConsoleWindow()
 if whnd != 0:
@@ -15,8 +16,9 @@ url = ''
 headers = {}
 #尝试自动补全
 try:
-    with open('url.txt', 'r') as fin:
-        url = fin.read()
+    print(url)
+    with open('url.txt', 'rb') as fin:
+        url = fin.read().decode('utf-8')
     print(url)
 except:
     pass
@@ -73,8 +75,8 @@ def Get():
                 s2 = num['message']
                 s = s1 + s2
                 Out.config(state = 'normal')
-                Out.insert('insert', s1, 'LightSteelBlue')
-                Out.insert('insert', s2 + '\n')
+                Out.insert('end', s1, 'LightSteelBlue')
+                Out.insert('end', s2 + '\n')
                 Out.config(state = 'disabled')
                 Out.see('end')
                 Out.update()
