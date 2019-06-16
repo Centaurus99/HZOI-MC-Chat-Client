@@ -8,11 +8,13 @@ import json
 
 
 #隐藏窗口
-whnd = ctypes.windll.kernel32.GetConsoleWindow()
-if whnd != 0:
-    ctypes.windll.user32.ShowWindow(whnd, 0)
-    ctypes.windll.kernel32.CloseHandle(whnd)
-
+try:
+    whnd = ctypes.windll.kernel32.GetConsoleWindow()
+    if whnd != 0:
+        ctypes.windll.user32.ShowWindow(whnd, 0)
+        ctypes.windll.kernel32.CloseHandle(whnd)
+except:
+    pass
 
 url = ''
 headers = {}
@@ -83,6 +85,7 @@ def Send():
         res = json.loads(post_res.text)
         res = res['error']
     root.bind('<Return>', PreSend)
+    root.bind('<KP_Enter>', PreSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
     if (res == 'none'):
@@ -100,6 +103,7 @@ def PreSend(event = None):
     In.config(state = 'disable')
     button.config(state = 'disable')
     root.unbind('<Return>')
+    root.unbind('<KP_Enter>')
     isthread = 0
     while (isthread == 0):
         try:
@@ -125,6 +129,7 @@ def GetStart():
             SetMessage(Meg1, 'Cookie请求错误', 'red')
             print('Cookie请求错误')
         root.bind('<Return>', Start)
+        root.bind('<KP_Enter>', Start)
         Prebutton.config(state = 'normal')
         PreIn.config(state = 'normal')
         return
@@ -141,6 +146,7 @@ def GetStart():
             SetMessage(Meg1, '无法启动 Get 线程', 'red')
             print ("Error: 无法启动 Get 线程")
     root.bind('<Return>', PreSend)
+    root.bind('<KP_Enter>', PreSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
     In.focus()
@@ -153,6 +159,7 @@ def Start(event = None):
     if (url == ''):
         return
     root.unbind('<Return>')
+    root.unbind('<KP_Enter>')
     Prebutton.config(state = 'disabled')
     PreIn.config(state = 'disabled')
     SetMessage(Meg1, 'Connecting...', 'grey')
@@ -172,7 +179,8 @@ def Start(event = None):
 #GUI元素创建
 root = tk.Tk(className = ' HZOI MC Chat Client')
 root.geometry("300x250")
-root.resizable(width=False, height=False)
+root.resizable(width=False, height=True)
+root.maxsize(300, 400)
 frm1 = tk.Frame(root, pady = 5)
 frm2 = tk.Frame(root)
 frm3 = tk.Frame(root)
@@ -181,18 +189,21 @@ label = tk.Label(frm1, text = 'URL:')
 PreIn = tk.Entry(frm1, width = 30)
 PreIn.insert('insert', url)
 Prebutton = tk.Button(frm1, text="Start", width = 5, height = 1, command = Start)
-Out = tk.Text(frm2, width = 40, height = 12, state = 'disabled')
+s1 = tk.Scrollbar(frm2)
+s1.pack(side = 'right', fill = 'y')
+Out = tk.Text(frm2, width = 40, state = 'disabled', yscrollcommand = s1.set)
 Meg1 = tk.Message(frm3, width = 150)
 Meg2 = tk.Message(frm3, width = 150)
 In = tk.Entry(frm4, width = 35, state = 'disabled')
 button = tk.Button(frm4, text="Send", width = 5, height = 1, state = 'disabled', command = PreSend)
 
 root.bind('<Return>', Start)
+root.bind('<KP_Enter>', Start)
 Out.tag_config('LightSteelBlue', foreground = '#B0C4DE')
+frm4.pack(side = 'bottom', fill = 'x')
+frm3.pack(side = 'bottom', fill = 'x')
 frm1.pack(fill = 'x')
 frm2.pack(fill = 'x')
-frm3.pack(fill = 'x')
-frm4.pack(fill = 'x')
 Out.pack()
 label.pack(side = 'left')
 Prebutton.pack(side = 'right')
