@@ -5,7 +5,6 @@ import time
 import threading
 import ctypes
 
-
 #隐藏窗口
 whnd = ctypes.windll.kernel32.GetConsoleWindow()
 if whnd != 0:
@@ -14,6 +13,7 @@ if whnd != 0:
 
 url = ''
 headers = {}
+
 #尝试自动补全
 try:
     print(url)
