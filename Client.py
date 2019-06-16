@@ -3,16 +3,25 @@ import requests
 import json
 import time
 import threading
+import ctypes
+
+#隐藏窗口
+whnd = ctypes.windll.kernel32.GetConsoleWindow()
+if whnd != 0:
+    ctypes.windll.user32.ShowWindow(whnd, 0)
+    ctypes.windll.kernel32.CloseHandle(whnd)
 
 url = ''
 headers = {}
+#尝试自动补全
 try:
-    with open('url.dat', 'r') as fin:
+    with open('url.txt', 'r') as fin:
         url = fin.read()
     print(url)
 except:
     pass
 
+#GUI元素创建
 root = tk.Tk(className = ' HZOI MC Chat Client')
 root.geometry("300x250")
 root.resizable(width=False, height=False)
@@ -30,16 +39,18 @@ Meg2 = tk.Message(frm3, width = 150)
 In = tk.Entry(frm4, width = 35, state = 'disabled')
 button = tk.Button(frm4, text="Send", width = 5, height = 1, state = 'disabled')
 
+#更改Message部件中的文字
 def SetMessage(Meg, s, col = None):
     if (col != None):
         Meg.config(fg = col)
     Meg.config(text = s)
     Meg.update()
 
+#保持与服务器连接，获取消息
 def Get():
     timestamp = 0
     while(1):
-        print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp / 1000)))
+        #print(time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timestamp / 1000)))
         get_res = requests.get(url + '/up/world/world/' + str(timestamp) , headers = headers)
         #SetMessage(Meg1, 'Get code:' + str(get_res.status_code))
         if (get_res.status_code != 200):
@@ -69,26 +80,27 @@ def Get():
                 Out.update()
                 with open('message.txt', 'ab+') as f:
                     f.write((s+'\n').encode('utf-8'))
-                print(s)
+                #print(s)
+        #Get间隔
         time.sleep(1)
 
+#按下Send按钮，发送消息
 def Send(event):
     s = In.get()
-    print(s)
+    #print(s)
     In.delete(first = 0, last = tk.END)
     if (s == ''):
         return
     json =  {"name" : "","message" : s}
     SetMessage(Meg2, 'Pending...', 'grey')
     post_res = requests.post(url + '/up/sendmessage', json = json)
-    
     if (post_res.status_code == 200): 
         Meg2.config(fg = 'green')
     else:
         Meg2.config(fg = 'red')
-
     SetMessage(Meg2, 'Post code:' + str(post_res.status_code))
 
+#尝试URL连接
 def GetStart():
     err = 0
     try:
@@ -125,6 +137,7 @@ def GetStart():
     button.config(state = 'normal')
     In.focus()
 
+#按下Start按钮
 def Start(event):
     global url
     global headers
@@ -136,10 +149,8 @@ def Start(event):
     Prebutton.config(state = 'disabled')
     PreIn.config(state = 'disabled')
     SetMessage(Meg1, 'Connecting...', 'grey')
-    print(url)
     if (url[:4] != 'http'):
         url = 'http://' + url
-    print(url)
     
     isthread = 0
     while (isthread == 0):
