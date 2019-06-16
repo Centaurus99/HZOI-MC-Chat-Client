@@ -19,8 +19,8 @@ label = tk.Label(frm1, text = 'URL:')
 PreIn = tk.Entry(frm1, width = 30)
 Prebutton = tk.Button(frm1, text="Start", width = 5, height = 1)
 Out = tk.Text(frm2, width = 40, height = 12, state = 'disabled')
-Meg1 = tk.Message(frm3, width = 100)
-Meg2 = tk.Message(frm3, width = 100)
+Meg1 = tk.Message(frm3, width = 150)
+Meg2 = tk.Message(frm3, width = 150)
 In = tk.Entry(frm4, width = 35, state = 'disabled')
 button = tk.Button(frm4, text="Send", width = 5, height = 1, state = 'disabled')
 
@@ -81,6 +81,42 @@ def Send(event):
 
     SetMessage(Meg2, 'Post code:' + str(post_res.status_code))
 
+def GetStart():
+    err = 0
+    try:
+        get_res = requests.get(url + '/up/world/world/1')
+    except:
+        err = 1
+    if (err or get_res.status_code != 200):
+        if err:
+            SetMessage(Meg1, 'URL错误', 'red')
+            print('URL错误')
+        else:
+            SetMessage(Meg1, 'Cookie请求错误', 'red')
+            print('Cookie请求错误')
+        root.bind('<Return>', Start)
+        Prebutton.bind('<Button-1>', Start)
+        Prebutton.config(state = 'normal')
+        PreIn.config(state = 'normal')
+        return
+    headers['Cookie'] = get_res.headers['Set-Cookie']
+    print(headers['Cookie'])
+    isthread = 0
+    while (isthread == 0):
+        try:
+            thread1 = threading.Thread(target = Get)
+            thread1.setDaemon(True)
+            thread1.start()
+            isthread = 1
+        except:
+            SetMessage(Meg1, '无法启动 Get 线程', 'red')
+            print ("Error: 无法启动 Get 线程")
+    root.bind('<Return>', Send)
+    button.bind('<Button-1>', Send)
+    In.config(state = 'normal')
+    button.config(state = 'normal')
+    In.focus()
+
 def Start(event):
     global url
     global headers
@@ -96,29 +132,16 @@ def Start(event):
     if (url[:4] != 'http'):
         url = 'http://' + url
     print(url)
-    iscookie = 0
-    while (iscookie == 0):
-        get_res = requests.get(url + '/up/world/world/1')
-        if (get_res.status_code != 200):
-            SetMessage(Meg1, 'Cookie请求错误', 'red')
-            print('Cookie请求错误')
-            continue
-        iscookie = 1
-        headers['Cookie'] = get_res.headers['Set-Cookie']
-        print(headers['Cookie'])
+    
     isthread = 0
     while (isthread == 0):
         try:
-            thread1 = threading.Thread(target = Get)
-            thread1.setDaemon(True)
-            thread1.start()
+            thread0 = threading.Thread(target = GetStart)
+            thread0.start()
             isthread = 1
         except:
-            print ("Error: 无法启动 Get 线程")
-    root.bind('<Return>', Send)
-    button.bind('<Button-1>', Send)
-    In.config(state = 'normal')
-    button.config(state = 'normal')
+            SetMessage(Meg1, '无法启动 GetStart 线程', 'red')
+            print ("Error: 无法启动 GetStart 线程")
 
 root.bind('<Return>', Start)
 Prebutton.bind('<Button-1>', Start)
@@ -135,5 +158,5 @@ button.pack(side = 'right')
 In.pack(side = 'left')
 Meg1.pack(side = 'left')
 Meg2.pack(side = 'right')
-In.focus()
+PreIn.focus()
 root.mainloop()
