@@ -19,30 +19,11 @@ headers = {}
 
 #尝试自动补全
 try:
-    print(url)
     with open('url.txt', 'rb') as fin:
         url = fin.read().decode('utf-8')
-    print(url)
+    #print(url)
 except:
     pass
-
-#GUI元素创建
-root = tk.Tk(className = ' HZOI MC Chat Client')
-root.geometry("300x250")
-root.resizable(width=False, height=False)
-frm1 = tk.Frame(root, pady = 5)
-frm2 = tk.Frame(root)
-frm3 = tk.Frame(root)
-frm4 = tk.Frame(root)
-label = tk.Label(frm1, text = 'URL:')
-PreIn = tk.Entry(frm1, width = 30)
-PreIn.insert('insert', url)
-Prebutton = tk.Button(frm1, text="Start", width = 5, height = 1)
-Out = tk.Text(frm2, width = 40, height = 12, state = 'disabled')
-Meg1 = tk.Message(frm3, width = 150)
-Meg2 = tk.Message(frm3, width = 150)
-In = tk.Entry(frm4, width = 35, state = 'disabled')
-button = tk.Button(frm4, text="Send", width = 5, height = 1, state = 'disabled')
 
 #更改Message部件中的文字
 def SetMessage(Meg, s, col = None):
@@ -66,7 +47,8 @@ def Get():
             SetMessage(Meg1, '已连接', 'green')
             #Meg1.config(fg = 'green')
         data = json.loads(get_res.content)
-        for num in data['updates']:
+        data = sorted(data['updates'], key = lambda x: x['timestamp'])
+        for num in data:
             if (num['timestamp'] <= timestamp):
                 continue
             if (timestamp == 0):
@@ -100,8 +82,7 @@ def Send():
     if (post_res.status_code == 200): 
         res = json.loads(post_res.text)
         res = res['error']
-    root.bind('<Return>', PerSend)
-    button.bind('<Button-1>', PerSend)
+    root.bind('<Return>', PreSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
     if (res == 'none'):
@@ -111,14 +92,14 @@ def Send():
         SetMessage(Meg2, res, 'red')
     
 #Send线程的启动函数
-def PerSend(event):
+def PreSend(event = None):
     s = In.get()
+    #print(s)
     if (s == ''):
         return
     In.config(state = 'disable')
     button.config(state = 'disable')
     root.unbind('<Return>')
-    button.unbind('<Button-1>')
     isthread = 0
     while (isthread == 0):
         try:
@@ -144,7 +125,6 @@ def GetStart():
             SetMessage(Meg1, 'Cookie请求错误', 'red')
             print('Cookie请求错误')
         root.bind('<Return>', Start)
-        Prebutton.bind('<Button-1>', Start)
         Prebutton.config(state = 'normal')
         PreIn.config(state = 'normal')
         return
@@ -160,21 +140,19 @@ def GetStart():
         except:
             SetMessage(Meg1, '无法启动 Get 线程', 'red')
             print ("Error: 无法启动 Get 线程")
-    root.bind('<Return>', PerSend)
-    button.bind('<Button-1>', PerSend)
+    root.bind('<Return>', PreSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
     In.focus()
 
 #按下Start按钮
-def Start(event):
+def Start(event = None):
     global url
     global headers
     url = PreIn.get()
     if (url == ''):
         return
     root.unbind('<Return>')
-    Prebutton.unbind('<Button-1>')
     Prebutton.config(state = 'disabled')
     PreIn.config(state = 'disabled')
     SetMessage(Meg1, 'Connecting...', 'grey')
@@ -191,8 +169,25 @@ def Start(event):
             SetMessage(Meg1, '无法启动 GetStart 线程', 'red')
             print ("Error: 无法启动 GetStart 线程")
 
+#GUI元素创建
+root = tk.Tk(className = ' HZOI MC Chat Client')
+root.geometry("300x250")
+root.resizable(width=False, height=False)
+frm1 = tk.Frame(root, pady = 5)
+frm2 = tk.Frame(root)
+frm3 = tk.Frame(root)
+frm4 = tk.Frame(root)
+label = tk.Label(frm1, text = 'URL:')
+PreIn = tk.Entry(frm1, width = 30)
+PreIn.insert('insert', url)
+Prebutton = tk.Button(frm1, text="Start", width = 5, height = 1, command = Start)
+Out = tk.Text(frm2, width = 40, height = 12, state = 'disabled')
+Meg1 = tk.Message(frm3, width = 150)
+Meg2 = tk.Message(frm3, width = 150)
+In = tk.Entry(frm4, width = 35, state = 'disabled')
+button = tk.Button(frm4, text="Send", width = 5, height = 1, state = 'disabled', command = PreSend)
+
 root.bind('<Return>', Start)
-Prebutton.bind('<Button-1>', Start)
 Out.tag_config('LightSteelBlue', foreground = '#B0C4DE')
 frm1.pack(fill = 'x')
 frm2.pack(fill = 'x')
