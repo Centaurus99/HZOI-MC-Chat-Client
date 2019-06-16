@@ -87,20 +87,41 @@ def Get():
         time.sleep(1)
 
 #按下Send按钮，发送消息
-def Send(event):
+def Send():
     s = In.get()
     #print(s)
-    In.delete(first = 0, last = tk.END)
-    if (s == ''):
-        return
     json =  {"name" : "","message" : s}
     SetMessage(Meg2, 'Pending...', 'grey')
     post_res = requests.post(url + '/up/sendmessage', json = json)
+    root.bind('<Return>', PerSend)
+    button.bind('<Button-1>', PerSend)
+    In.config(state = 'normal')
+    button.config(state = 'normal')
     if (post_res.status_code == 200): 
         Meg2.config(fg = 'green')
+        In.delete(first = 0, last = tk.END)
     else:
         Meg2.config(fg = 'red')
     SetMessage(Meg2, 'Post code:' + str(post_res.status_code))
+    
+#Send线程的启动函数
+def PerSend(event):
+    s = In.get()
+    if (s == ''):
+        return
+    In.config(state = 'disable')
+    button.config(state = 'disable')
+    root.unbind('<Return>')
+    button.unbind('<Button-1>')
+    isthread = 0
+    while (isthread == 0):
+        try:
+            thread0 = threading.Thread(target = Send)
+            thread0.start()
+            isthread = 1
+        except:
+            SetMessage(Meg2, '无法启动 Send 线程', 'red')
+            print ("Error: 无法启动 Send 线程")
 
 #尝试URL连接
 def GetStart():
@@ -133,8 +154,8 @@ def GetStart():
         except:
             SetMessage(Meg1, '无法启动 Get 线程', 'red')
             print ("Error: 无法启动 Get 线程")
-    root.bind('<Return>', Send)
-    button.bind('<Button-1>', Send)
+    root.bind('<Return>', PerSend)
+    button.bind('<Button-1>', PerSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
     In.focus()
