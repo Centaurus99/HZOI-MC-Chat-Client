@@ -6,13 +6,13 @@ import threading
 import ctypes
 import json
 
-'''
+
 #隐藏窗口
 whnd = ctypes.windll.kernel32.GetConsoleWindow()
 if whnd != 0:
     ctypes.windll.user32.ShowWindow(whnd, 0)
     ctypes.windll.kernel32.CloseHandle(whnd)
-'''
+
 
 url = ''
 headers = {}
