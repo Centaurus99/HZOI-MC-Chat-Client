@@ -2,3 +2,6 @@
 /*.txt
 /*.dat
 /temp*
+__pycache__/
+build/
+dist/
