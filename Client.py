@@ -4,12 +4,15 @@ import json
 import time
 import threading
 import ctypes
+import json
 
+'''
 #隐藏窗口
 whnd = ctypes.windll.kernel32.GetConsoleWindow()
 if whnd != 0:
     ctypes.windll.user32.ShowWindow(whnd, 0)
     ctypes.windll.kernel32.CloseHandle(whnd)
+'''
 
 url = ''
 headers = {}
@@ -56,11 +59,11 @@ def Get():
         get_res = requests.get(url + '/up/world/world/' + str(timestamp) , headers = headers)
         #SetMessage(Meg1, 'Get code:' + str(get_res.status_code))
         if (get_res.status_code != 200):
-            SetMessage(Meg1, 'Unconnected', 'red')
+            SetMessage(Meg1, '断开连接', 'red')
             #Meg1.config(fg = 'red')
             continue
         else:
-            SetMessage(Meg1, 'Connected', 'green')
+            SetMessage(Meg1, '已连接', 'green')
             #Meg1.config(fg = 'green')
         data = json.loads(get_res.content)
         for num in data['updates']:
@@ -90,19 +93,22 @@ def Get():
 def Send():
     s = In.get()
     #print(s)
-    json =  {"name" : "","message" : s}
+    post_json =  {"name" : "","message" : s}
     SetMessage(Meg2, 'Pending...', 'grey')
-    post_res = requests.post(url + '/up/sendmessage', json = json)
+    post_res = requests.post(url + '/up/sendmessage', json = post_json)
+    res = 'Connect Failed'
+    if (post_res.status_code == 200): 
+        res = json.loads(post_res.text)
+        res = res['error']
     root.bind('<Return>', PerSend)
     button.bind('<Button-1>', PerSend)
     In.config(state = 'normal')
     button.config(state = 'normal')
-    if (post_res.status_code == 200): 
-        Meg2.config(fg = 'green')
+    if (res == 'none'):
+        SetMessage(Meg2, '发送成功', 'green')
         In.delete(first = 0, last = tk.END)
     else:
-        Meg2.config(fg = 'red')
-    SetMessage(Meg2, 'Post code:' + str(post_res.status_code))
+        SetMessage(Meg2, res, 'red')
     
 #Send线程的启动函数
 def PerSend(event):
